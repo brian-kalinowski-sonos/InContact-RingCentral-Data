@@ -1,0 +1,128 @@
+########################################################################################################################
+
+import http.client
+import json
+
+from TokenManager import TokenManager
+from urllib.parse import urlencode
+
+token = TokenManager('creds.yml')
+
+conn = http.client.HTTPSConnection("api-c30.incontact.com")
+
+request_headers = {'Authorization': 'Bearer {}'.format(token()),
+                   'Content-Type': 'x-www-form-urlencoded',
+                   'Accept': 'application/json'}
+
+params = {'startDate': '2020-01-01T00:00:00.000', 'endDate': '2020-02-01T00:00:00.000'}
+
+conn.request('GET', '/inContactAPI/services/v17.0/reports', body=urlencode(params), headers=request_headers)
+
+req = conn.getresponse()
+
+data = json.loads(req.read().decode('utf-8'))['reports']
+
+print(len(data))
+########################################################################################################################
+
+
+import base64
+import http.client
+import json
+import time
+import yaml
+from typing import *
+
+
+# Class to hold the current token, etc. for in-contact
+class Token:
+    def __init__(self, username: str, password: str, auth_code: str):
+        request_body = json.dumps({'grant_type': 'password', 'username': username,
+                                   'password': password, 'scope': 'ReportingApi'})
+
+        request_header = {'Content-Type': 'application/json', 'Authorization': auth_code}
+
+        try:
+            connection = http.client.HTTPSConnection('api.incontact.com')
+            connection.request('POST', '/InContactAuthorizationServer/Token', body=request_body, headers=request_header)
+            response = connection.getresponse()
+            self.token_attrs = json.loads(response.read().decode('utf-8'))
+
+            if self.token_attrs is None:
+                raise Exception('Token Request Failed!')
+        except Exception as exp:
+            print(exp)
+            self.token_attrs = {}
+
+    def update_token(self, new_attrs: dict) -> NoReturn:
+        if new_attrs is not None:
+            self.token_attrs = new_attrs
+        else:
+            print('Error Token Not updated')
+
+    def __call__(self, *args, **kwargs) -> dict:
+        return self.token_attrs
+
+
+# Manages the refresh of the token so it will not expire
+class TokenManager:
+    def __init__(self, credentials_path: str):
+        self.credentials = self.get_credentials(credentials_path)
+        self.token = Token(self.credentials['user'], self.credentials['pwd'], self.credentials['auth'])
+        self.token_expiration = time.time() + (self.token()['expires_in'] - 60.0)
+
+    def __call__(self, *args, **kwargs) -> str:
+        if time.time() >= self.token_expiration:
+            self.refresh_token()
+            self.token_expiration = time.time() + (self.token()['expires_in'] - 60.0)
+        return self.token()['access_token']
+
+    def refresh_token(self):
+        refresh_body = json.dumps({'grant_type': 'refresh_token', 'refresh_token': self.token()['refresh_token']})
+        request_header = {'Content-Type': 'application/json', 'Authorization': self.credentials['auth']}
+        try:
+            connection = http.client.HTTPSConnection('api-c30.incontact.com')
+            connection.request('POST', '/InContactAuthorizationServer/Token', body=refresh_body, headers=request_header)
+            response = connection.getresponse()
+            data = json.loads(response.read().decode('utf-8'))
+            self.token.update_token(data)
+        except Exception as exp:
+            print(exp)
+
+    @staticmethod
+    def get_credentials(path) -> dict:
+        with open(path) as cred_file:
+            contents = yaml.safe_load(cred_file)
+        info = contents['in_contact']
+        info['auth'] = 'basic {}'.format(base64.b64encode(info['auth'].encode('utf-8')).decode('utf-8'))
+        return info
+
+
+# example with forced refresh
+if __name__ == '__main__':
+    token = TokenManager('creds.yml')
+    for i in range(10):
+        token.refresh_token()
+        print(token.token()['refresh_token'])
+        print(token(), '\n')
+########################################################################################################################
+
+import requests
+from urllib.parse import urlencode
+from TokenManager import TokenManager
+import json
+
+token = TokenManager('creds.yml')
+
+url = "https://api-c30.incontact.com/inContactAPI/services/v17.0/"
+
+headers = {'Authorization': 'Bearer {}'.format(token()),
+           'Content-Type': 'x-www-form-urlencoded',
+           'Accept': 'application/json'
+           }
+
+params = {'startDate': '2020-01-01T00:00:00.000', 'endDate': '2020-02-01T00:00:00.000'}
+
+response = requests.get(url + 'skills/sla-summary', headers=headers, params=params)
+
+print(response.json())
