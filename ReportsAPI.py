@@ -7,10 +7,13 @@ from TokenManager import TokenManager
 token = TokenManager('creds.yml')
 
 # ID of the report to run
-report_id = '521'
+report_id = '524'
+
+# file name for report results
+file_name = 'call_detail.csv'
 
 # Base URL
-url = 'https://api-c30.incontact.com/inContactAPI/services/v17.0/report-jobs/datadownload/'
+url = 'https://api-c30.incontact.com/inContactAPI/services/v17.0/report-jobs/datadownload/{}'.format(report_id)
 
 # Request Headers
 headers = {'Authorization': 'Bearer {}'.format(token()),
@@ -26,18 +29,18 @@ headers = {'Authorization': 'Bearer {}'.format(token()),
 
 params = {'saveAsFile': 'false',
           'includeHeaders': 'true',
-          'startDate': '2020-02-14T00:00:00.000',
-          'endDate': '2020-02-15T00:00:00.000'
+          'startDate': '2020-01-01T00:00:00.000',
+          'endDate': '2020-01-31T00:00:00.000'
           }
 
 try:
-    response = requests.post(url + report_id, params=params, headers=headers)
+    response = requests.post(url, params=params, headers=headers)
     response.raise_for_status()
     response_raw = response.json()['file']  # base64 encoded string
     print('Creating file...\n')
 
     data = [line.split(',') for line in base64.b64decode(response_raw).decode('ascii').split('\n')]
-    with open('testing.csv', 'w') as test_file:
+    with open(file_name, 'w') as test_file:
         writer = csv.writer(test_file)
         writer.writerows(data)
     print('File Created, {} rows writen'.format(len(data)))
