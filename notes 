@@ -126,3 +126,22 @@ params = {'startDate': '2020-01-01T00:00:00.000', 'endDate': '2020-02-01T00:00:0
 response = requests.get(url + 'skills/sla-summary', headers=headers, params=params)
 
 print(response.json())
+#####################################################################################################################
+
+500	Agent By Day
+511	Call Detail w/recordings
+512	Agent Summary
+513	Expanded Call Detail
+514	List of Agent Skills 2
+516	Agent Time card (Expanded)
+518	Agent Summary by Day
+521	Agent Summary (in minutes)
+523	Point of Contact - Expanded
+
+**** 524 Call Detail (Comprehensive) *****
+
+544	Agent State Log
+549	Expanded Call Detail Report
+550	Blocked Calls
+551	Call Detail Report
+

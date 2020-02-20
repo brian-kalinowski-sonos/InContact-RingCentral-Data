@@ -72,13 +72,3 @@ class TokenManager:
         info = contents['in_contact']
         info['auth'] = 'basic {}'.format(base64.b64encode(info['auth'].encode('utf-8')).decode('utf-8'))
         return info
-
-
-# example with forced refresh
-
-# if __name__ == '__main__':
-#     token = TokenManager('creds.yml')
-#     for i in range(4):
-#         token.refresh_token()
-#         print('Refresh Token: ', token.token()['refresh_token'])
-#         print('Current Token: ', token()[0:10], '......etc', '\n')

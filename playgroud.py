@@ -2,23 +2,34 @@ import requests
 
 from TokenManager import TokenManager
 
-# token = TokenManager('creds.yml')
-#
-# url = 'https://api-c30.incontact.com/inContactAPI/services/v17.0/'
-#
-# headers = {'Authorization': 'Bearer {}'.format(token()),
-#            'Content-Type': 'x-www-form-urlencoded',
-#            'Accept': 'application/json'
-#            }
-#
-# params = {'startDate': '2020-01-01T00:00:00.000', 'endDate': '2020-02-01T00:00:00.000'}
-#
-# response = requests.get(url + 'skills/sla-summary', headers=headers, params=params)
-#
-# print(response.json())
+# API access token
+token = TokenManager('creds.yml')
 
+# ID of the report to run
+report_id = '2812'
 
-import pandas as pd
-data = pd.read_csv('call_detail.csv')
-print(data.shape)
-print(data.head())
+job_id = '681205'
+
+# Base URL
+url = 'https://api-c30.incontact.com/inContactAPI/services/v17.0/report-jobs/{}'.format(job_id)
+
+# Request Headers
+headers = {'Authorization': 'Bearer {}'.format(token()),
+           'Content-Type': 'x-www-form-urlencoded',
+           'Accept': 'application/json'
+           }
+
+payload = {'fileType': 'CSV',
+           'includeHeaders': 'true',
+           'appendDate': 'true',
+           'deleteAfter': '7',
+           'overwrite': 'true',
+           'startDate': '2020-01-01T00:00:00.000',
+           'endDate': '2020-01-31T00:00:00.000'
+           }
+
+response = requests.get(url, headers=headers)
+response.raise_for_status()
+
+print(response.status_code)
+print(response.json())
