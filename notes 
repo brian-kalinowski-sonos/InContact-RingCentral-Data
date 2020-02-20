@@ -137,8 +137,7 @@ print(response.json())
 518	Agent Summary by Day
 521	Agent Summary (in minutes)
 523	Point of Contact - Expanded
-
-**** 524 Call Detail (Comprehensive) *****
+524 Call Detail (Comprehensive)
 
 544	Agent State Log
 549	Expanded Call Detail Report

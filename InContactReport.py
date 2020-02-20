@@ -31,15 +31,15 @@ class InContactReport:
 
         for start, end in self.date_batches:
             try:
-                print('Running Batch: {} TO {}'.format(start[0:10], end[0:10]))
+                print('Running Batch: {} >> {}'.format(start[0:10], end[0:10]))
 
                 # make the API request for the 30day batch of data
                 request_params = {'saveAsFile': 'false', 'includeHeaders': 'true', 'startDate': start, 'endDate': end}
                 api_response = requests.post(url, params=request_params, headers=self.request_headers)
-                api_response.raise_for_status()
 
                 # format exception if bad http response
                 if api_response.status_code != 200:
+                    api_response.raise_for_status()
                     raise Exception('API HTTP ERROR: {}\nJSON response: {}'.format(api_response.status_code,
                                                                                    api_response.json()))
 
@@ -51,7 +51,7 @@ class InContactReport:
 
                 # append to list of all report batches
                 self.report_df_batches.append(report_df)
-                print('Finished Batch: {} TO {}\n'.format(start[0:10], end[0:10]))
+                print('Finished Batch: {} >> {}\n'.format(start[0:10], end[0:10]))
 
             except Exception as exp:
                 print(exp)

@@ -6,7 +6,7 @@ from TokenManager import TokenManager
 token = TokenManager('creds.yml')
 
 # ID of the report to run
-report_id = '2812'
+code = '2812'
 
 job_id = '681205'
 
