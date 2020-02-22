@@ -6,8 +6,6 @@ import base64
 import pandas as pd
 import aiohttp
 
-START_TIME = default_timer()
-
 
 def get_data_shape(raw):
     data_string = StringIO(base64.b64decode(raw).decode('ascii'))
@@ -16,13 +14,14 @@ def get_data_shape(raw):
 
 
 async def fetch(session, report_id, params):
+    start_time = default_timer()
     base_url = 'https://api-c30.incontact.com/inContactAPI/services/v17.0/report-jobs/datadownload/'
     async with session.post(base_url + report_id, params=params) as response:
         json_res = await response.json()
         data = get_data_shape(json_res['file'])
 
-        time = "{:5.2f}s".format((default_timer() - START_TIME))
-        print('Report ID: {}\nCompleted Time: {}\nData Shape: {}\n'.format(report_id, time, data))
+        run_time = "{:5.2f}s".format((default_timer() - start_time))
+        print('Report ID: {}\nCompleted Time: {}\nData Shape: {}\n'.format(report_id, run_time, data))
         return data
 
 
