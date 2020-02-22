@@ -5,12 +5,13 @@ import pandas as pd
 import requests
 from dateutil.parser import parse
 from TokenManager import TokenManager
+from timeit import default_timer
 
 
 class InContactReport:
     def __init__(self, start_date: str, end_date: str):
         # TODO change this for service account
-        self.token = TokenManager('creds.yml')
+        self.token = TokenManager('../creds.yml')
 
         # gets 30 day intervals of dates from start till end
         self.date_batches = self.get_date_range(start_date, end_date)
@@ -30,6 +31,7 @@ class InContactReport:
         url = 'https://api-c30.incontact.com/inContactAPI/services/v17.0/report-jobs/datadownload/{}'.format(report_id)
 
         for start, end in self.date_batches:
+            start_time = default_timer()
             try:
                 print('Running Batch: {} >> {}'.format(start[0:10], end[0:10]))
 
@@ -51,7 +53,10 @@ class InContactReport:
 
                 # append to list of all report batches
                 self.report_df_batches.append(report_df)
-                print('Finished Batch: {} >> {}\n'.format(start[0:10], end[0:10]))
+
+                print('Finished Batch: {} >> {}'.format(start[0:10], end[0:10]))
+                run_time = "{:5.2f}s".format((default_timer() - start_time))
+                print('Batch Time: {}\n'.format(run_time))
 
             except Exception as exp:
                 print(exp)

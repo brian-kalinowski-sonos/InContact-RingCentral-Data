@@ -4,7 +4,7 @@ from io import StringIO
 import pandas as pd
 import requests
 
-from TokenManager import TokenManager
+from InContactData.TokenManager import TokenManager
 
 # API access token
 token = TokenManager('creds.yml')
