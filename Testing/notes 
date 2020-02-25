@@ -1,22 +1,9 @@
-TEST: using aiohttp
-report_ids = ['521', '524', '544', '549', '500']
-'startDate': '2020-01-01T00:00:00', 'endDate': '2020-01-31T00:00:00'
+Singer Stuffs:
+- Move Token stuff to File IO/ config.json
 
-Completed Time: 111.70s
-###############################################################
+- Catolog json: Report Id, Start-end dates
 
-TEST: requests with asyncio
-report_ids = ['521', '524', '544', '549', '500']
-'startDate': '2020-01-01T00:00:00', 'endDate': '2020-01-31T00:00:00'
-with ThreadPoolExecutor(max_workers=len(report_ids)) as executor:
+- State json: logging stuffs
 
-Completed Time: 101.57s
-###############################################################
+-
 
-Test requests with asyncio
-report_ids = ['521', '524', '544', '549', '500']
-'startDate': '2020-01-01T00:00:00', 'endDate': '2020-01-31T00:00:00'
-with ThreadPoolExecutor(max_workers=None)
-
-Completed Time: 89.50s
-###############################################################

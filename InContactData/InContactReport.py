@@ -1,17 +1,19 @@
 import base64
 from io import StringIO
+from timeit import default_timer
 from typing import *
+
 import pandas as pd
 import requests
 from dateutil.parser import parse
+
 from TokenManager import TokenManager
-from timeit import default_timer
 
 
 class InContactReport:
     def __init__(self, start_date: str, end_date: str):
         # TODO change this for service account
-        self.token = TokenManager('../creds.yml')
+        self.token = TokenManager('/Users/brian.kalinowski/IdeaProjects/RingCentralData/creds.yml')
 
         # gets 30 day intervals of dates from start till end
         self.date_batches = self.get_date_range(start_date, end_date)

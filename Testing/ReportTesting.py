@@ -27,7 +27,7 @@ headers = {'Authorization': 'Bearer {}'.format(token()),
 params = {'saveAsFile': 'false',
           'includeHeaders': 'true',
           'startDate': '2019-01-01T00:00:00',
-          'endDate': '2019-01-31T00:00:00'
+          'endDate': '2019-01-02T00:00:00'
           }
 
 try:
@@ -39,16 +39,19 @@ try:
         print(response.json())
 
     # base64 encoded string
-    response_raw = response.json()['file']
+    response_raw = response.json()
+
 
     # String IO format
-    data_string = StringIO(base64.b64decode(response_raw).decode('ascii'))
+    #data_string = StringIO(base64.b64decode(response_raw).decode('ascii'))
 
     # DataFrame
-    data_frame = pd.read_csv(data_string, sep=',')
-    print('Creating file...\n')
-    print('Data Shape: {}'.format(data_frame.shape))
-    print(data_frame.head())
+   # data_frame = pd.read_csv(data_string, sep=',')
+
+    print(response_raw)
+    # print('Creating file...\n')
+    # print('Data Shape: {}'.format(data_frame.shape))
+    # print(data_frame.head())
 
 except Exception as exp:
     print(exp)
