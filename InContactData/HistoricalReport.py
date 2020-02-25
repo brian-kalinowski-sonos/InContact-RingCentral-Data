@@ -14,9 +14,11 @@ from TokenManager import TokenManager
 
 
 class HistoricalReport:
-    def __init__(self, start_date: str, end_date: str):
+    def __init__(self, report_id: str, start_date: str, end_date: str):
         # TODO change this for service account
         self.token = TokenManager('/Users/brian.kalinowski/IdeaProjects/RingCentralData/creds.yml')
+
+        self.report_id = report_id
 
         # gets 30 day intervals of dates from start till end
         self.date_batches = self.get_date_range(start_date, end_date)
@@ -30,36 +32,41 @@ class HistoricalReport:
         # holds the df for each batch in the date range
         self.report_df_batches = []
 
-    async def run_report(self, session: ClientSession, param: dict, report_id: str) -> pd.DataFrame:
+    async def run_report(self, session: ClientSession, param: dict) -> pd.DataFrame:
         start_time = default_timer()
-        url = 'https://api-c30.incontact.com/inContactAPI/services/v17.0/report-jobs/datadownload/{}'.format(report_id)
+        url = 'https://api-c30.incontact.com/inContactAPI/services/v17.0/report-jobs/datadownload/' + self.report_id
         async with session.post(url, params=param) as response:
             response.raise_for_status()
             json_result = await response.json()
             data = self.format_data(json_result['file'])
             run_time = '{:5.2f}s'.format((default_timer() - start_time))
-            print('Report: {}'.format(report_id))
-            print('Batch: {} >> {} Completed\nRun Time: {}\n'.format(param['startDate'][0:10],
+            print('Report: {}'.format(self.report_id))
+            print('Completed Batch: {} -- {}\nRun Time: {}\n'.format(param['startDate'][0:10],
                                                                      param['endDate'][0:10], run_time))
             return data
 
-    async def generate_reports(self, loop: AbstractEventLoop, params: List[Dict], report_id: str) -> List[pd.DataFrame]:
+    async def generate_reports(self, loop: AbstractEventLoop, params: List[Dict]) -> List[pd.DataFrame]:
         async with aiohttp.ClientSession(loop=loop, headers=self.request_headers) as api_session:
-            results = await asyncio.gather(*[self.run_report(api_session, param, report_id) for param in params],
+            results = await asyncio.gather(*[self.run_report(api_session, param) for param in params],
                                            return_exceptions=True)
             return results
 
-    def run_report_batches(self, report_id: str) -> NoReturn:
+    def run_report_batches(self) -> NoReturn:
         batch_params = [{'saveAsFile': 'false', 'includeHeaders': 'true', 'startDate': start, 'endDate': end}
                         for start, end in self.date_batches]
 
         event_loop = asyncio.get_event_loop()
-        futures = asyncio.ensure_future(self.generate_reports(event_loop, batch_params, report_id))
+        futures = asyncio.ensure_future(self.generate_reports(event_loop, batch_params))
         self.report_df_batches = event_loop.run_until_complete(futures)
 
     def get_full_report(self) -> pd.DataFrame:
         # merge all batch df's
         return pd.concat(self.report_df_batches, ignore_index=True, sort=False)
+
+    def write_to_file(self, save_path, file_name) -> NoReturn:
+        full_data = self.get_full_report()
+        full_data.to_csv(save_path + file_name, header=True, index=False)
+        print('File: {} Saved'.format(save_path + file_name))
 
     @staticmethod
     def format_data(raw: str) -> pd.DataFrame:
@@ -90,16 +97,10 @@ class HistoricalReport:
             raise ValueError('Date string params should be in format: YYYY-MM-DD')
 
 
-if __name__ == '__main__':
-    start = '2019-01-01'
-    end = '2019-05-01'
-
-    reports = {'521': HistoricalReport(start, end),
-               '524': HistoricalReport(start, end)
-               }
-
-    for key in reports.keys():
-        reports[key].run_report_batches(key)
-
-    for key in reports.keys():
-        print(key, 'Data Shape: ', reports[key].get_full_report().shape)
+# if __name__ == '__main__':
+#     start = '2019-01-01'
+#     end = '2019-10-01'
+#
+#     test_report = HistoricalReport('521', start, end)
+#     test_report.run_report_batches()
+#     print(test_report.get_full_report())

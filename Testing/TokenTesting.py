@@ -1,4 +1,5 @@
 from TokenManager import TokenManager
+import requests
 
 token = TokenManager('/Users/brian.kalinowski/IdeaProjects/RingCentralData/creds.yml')
 
